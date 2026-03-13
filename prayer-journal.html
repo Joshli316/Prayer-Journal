@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prayer Journal</title>
+
+  <!-- Google Fonts: Playfair Display for headings, Lato for body text -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── CSS Variables: Our color palette ── */
+    :root {
+      --cream: #f5f0e8;         /* warm background */
+      --white: #ffffff;
+      --navy: #1e3a5f;          /* dark blue for headings */
+      --blue: #2e6da4;          /* medium blue for labels */
+      --rust: #b85c38;          /* warm rust/orange accent */
+      --gold: #c9952a;          /* gold for answered prayers */
+      --light-blue: #d6e8f7;    /* soft blue for tags */
+      --border: #ddd4c0;        /* warm border color */
+      --text: #3a3228;          /* dark warm brown for body text */
+      --shadow: rgba(0,0,0,0.08);
+    }
+
+    /* ── Reset & Base ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--cream);
+      font-family: 'Lato', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* ── Main container: centers everything on wide screens ── */
+    .journal-container {
+      max-width: 720px;       /* limits width so it reads well */
+      margin: 0 auto;         /* centers horizontally */
+    }
+
+    /* ── Header: the big "Prayer" title at the top ── */
+    .journal-header {
+      text-align: center;
+      padding: 30px 0 10px;
+    }
+
+    .journal-header h1 {
+      font-family: 'Dancing Script', cursive;  /* handwriting-style font */
+      font-size: 5rem;
+      color: var(--navy);
+      line-height: 1;
+      text-shadow: 2px 3px 6px rgba(0,0,0,0.1);
+    }
+
+    /* ── Date display under the title ── */
+    .journal-date {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.95rem;
+      color: var(--rust);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ── Each section card (white box) ── */
+    .section-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 20px;
+      box-shadow: 0 2px 12px var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Section label/heading inside each card ── */
+    .section-label {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+
+    /* ── Section 1: Scripture of the Day ── */
+    .scripture-verse {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--navy);
+      line-height: 1.7;
+      border-left: 3px solid var(--rust);
+      padding-left: 16px;
+      margin-bottom: 8px;
+    }
+
+    .scripture-ref {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      color: var(--rust);
+      font-weight: 700;
+      text-align: right;
+    }
+
+    /* ── Shared textarea style ── */
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--cream);
+      resize: vertical;          /* user can drag to resize vertically */
+      outline: none;
+      transition: border-color 0.2s;
+      min-height: 100px;
+    }
+
+    textarea:focus {
+      border-color: var(--blue);  /* highlight border when typing */
+    }
+
+    /* ── Section 3: Prayer Requests ── */
+    .prayer-input-row {
+      display: flex;             /* puts input + button side by side */
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;           /* wraps on small screens */
+    }
+
+    .prayer-text-input {
+      flex: 1;                   /* takes up remaining space */
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.95rem;
+      background: var(--cream);
+      outline: none;
+      min-width: 180px;
+    }
+
+    .prayer-text-input:focus {
+      border-color: var(--blue);
+    }
+
+    /* ── Tag selector (dropdown) ── */
+    .tag-select {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      background: var(--cream);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ── Add button ── */
+    .btn-add {
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.2s;
+    }
+
+    .btn-add:hover {
+      background: var(--blue);
+    }
+
+    /* ── Each prayer request item in the list ── */
+    .prayer-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+    }
+
+    .prayer-bullet {
+      color: var(--blue);
+      font-size: 1.2rem;
+      margin-top: 2px;
+      flex-shrink: 0;           /* bullet never shrinks */
+    }
+
+    .prayer-item-text {
+      flex: 1;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* ── Tag pill badges ── */
+    .tag-pill {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-left: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Each tag has its own color */
+    .tag-family   { background: #fde8d8; color: #b85c38; }
+    .tag-work     { background: #dff0e8; color: #2e7d52; }
+    .tag-church   { background: #e8e0f5; color: #5e35b1; }
+    .tag-friends  { background: #d6e8f7; color: #2e6da4; }
+    .tag-self     { background: #fff3cd; color: #856404; }
+    .tag-nation   { background: #fce4e4; color: #b71c1c; }
+    .tag-other    { background: #eeeeee; color: #555555; }
+
+    /* ── Delete button on prayer items ── */
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 4px;
+      transition: color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover { color: #e53935; }
+
+    /* ── Section 4: Answered Prayers ── */
+    .answered-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .answered-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+
+    /* When answered checkbox is checked, the card turns gold-tinted */
+    .answered-item.is-answered {
+      background: #fffbef;
+      border-color: var(--gold);
+    }
+
+    /* Checkbox styling */
+    .answered-checkbox {
+      width: 18px;
+      height: 18px;
+      margin-top: 3px;
+      accent-color: var(--gold);  /* makes checkbox gold when checked */
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .answered-item-body {
+      flex: 1;
+    }
+
+    .answered-item-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      transition: all 0.3s;
+    }
+
+    /* Strikethrough effect when answered */
+    .answered-item.is-answered .answered-item-text {
+      text-decoration: line-through;
+      color: var(--gold);
+    }
+
+    .answered-date-label {
+      font-size: 0.78rem;
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 4px;
+      display: none;            /* hidden until answered */
+    }
+
+    /* Show date label only when answered */
+    .answered-item.is-answered .answered-date-label {
+      display: block;
+    }
+
+    .answered-date-input {
+      border: none;
+      border-bottom: 1px solid var(--gold);
+      background: transparent;
+      font-size: 0.78rem;
+      color: var(--gold);
+      font-family: 'Lato', sans-serif;
+      outline: none;
+      padding: 2px 4px;
+      width: 130px;
+    }
+
+    /* ── Footer quote at the bottom ── */
+    .journal-footer {
+      text-align: center;
+      padding: 30px 20px 40px;
+      color: var(--navy);
+    }
+
+    .footer-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    .footer-attr {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.1rem;
+      margin-top: 6px;
+      color: var(--rust);
+    }
+
+    /* ── Language toggle ── */
+    .lang-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--navy);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      box-shadow: 0 1px 4px var(--shadow);
+      z-index: 10;
+    }
+
+    .lang-toggle:hover {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .journal-container {
+      position: relative;
+    }
+
+    /* ── Responsive: smaller screens ── */
+    @media (max-width: 500px) {
+      .journal-header h1 { font-size: 3.5rem; }
+      .section-card { padding: 18px 16px; }
+      .prayer-input-row { flex-direction: column; }
+      .btn-add { width: 100%; }
+      .lang-toggle { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="journal-container">
+
+  <!-- ══ LANGUAGE TOGGLE ══ -->
+  <button class="lang-toggle" id="langToggle" onclick="toggleLanguage()">中文</button>
+
+  <!-- ══ HEADER ══ -->
+  <div class="journal-header">
+    <h1 data-i18n="title">Prayer</h1>
+    <div class="journal-date" id="todayDate"></div>
+  </div>
+
+  <!-- ══ SECTION 1: Scripture of the Day ══ -->
+  <div class="section-card">
+    <div class="section-label" data-i18n="scriptureLabel">✦ Scripture of the Day</div>
+    <div class="scripture-verse" id="verseText">Loading verse...</div>
+    <div class="scripture-ref" id="verseRef"></div>
+  </div>
+
+  <!-- ══ SECTION 2: Praise and Thanks ══ -->
+  <div class="section-card">
+    <div class="section-label" data-i18n="praiseLabel">✦ Praise and Thanks</div>
+    <textarea
+      id="praiseText"
+      data-i18n-placeholder="praisePlaceholder"
+      placeholder="Write your praises and thanks to God today..."
+      rows="4"
+    ></textarea>
+  </div>
+
+  <!-- ══ SECTION 3: Prayers For ══ -->
+  <div class="section-card">
+    <div class="section-label" data-i18n="prayersLabel">✦ Prayers For</div>
+
+    <!-- Input row: text + tag + button -->
+    <div class="prayer-input-row">
+      <input
+        type="text"
+        class="prayer-text-input"
+        id="prayerInput"
+        data-i18n-placeholder="prayerInputPlaceholder"
+        placeholder="Enter a prayer request..."
+      />
+      <select class="tag-select" id="prayerTag">
+        <option value="self" data-i18n="tagSelf">Self</option>
+        <option value="family" data-i18n="tagFamily">Family</option>
+        <option value="friends" data-i18n="tagFriends">Friends</option>
+        <option value="church" data-i18n="tagChurch">Church</option>
+        <option value="work" data-i18n="tagWork">Work</option>
+        <option value="nation" data-i18n="tagNation">Nation</option>
+        <option value="other" data-i18n="tagOther">Other</option>
+      </select>
+      <button class="btn-add" onclick="addPrayer()" data-i18n="addBtn">+ Add</button>
+    </div>
+
+    <!-- Prayer items appear here -->
+    <div id="prayerList"></div>
+  </div>
+
+  <!-- ══ SECTION 4: Answered Prayers ══ -->
+  <div class="section-card">
+    <div class="section-label" data-i18n="answeredLabel">✦ Answered Prayers</div>
+
+    <!-- Input row for answered prayers -->
+    <div class="answered-input-row">
+      <input
+        type="text"
+        class="prayer-text-input"
+        id="answeredInput"
+        data-i18n-placeholder="answeredInputPlaceholder"
+        placeholder="Write an answered prayer..."
+        style="flex:1"
+      />
+      <button class="btn-add" onclick="addAnswered()" data-i18n="addBtn">+ Add</button>
+    </div>
+
+    <!-- Answered prayer items appear here -->
+    <div id="answeredList"></div>
+  </div>
+
+  <!-- ══ SECTION 5: On My Heart Today ══ -->
+  <div class="section-card">
+    <div class="section-label" data-i18n="heartLabel">✦ On My Heart Today</div>
+    <textarea
+      id="heartText"
+      data-i18n-placeholder="heartPlaceholder"
+      placeholder="What is on your heart today? Write freely..."
+      rows="5"
+    ></textarea>
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="journal-footer">
+    <div class="footer-quote" data-i18n="footerQuote">"Go where your best prayers take you."</div>
+    <div class="footer-attr" data-i18n="footerAttr">— Frederick Buechner</div>
+  </div>
+
+</div><!-- end journal-container -->
+
+
+<script>
+  // ════════════════════════════════════════
+  //  TRANSLATIONS
+  // ════════════════════════════════════════
+  const i18n = {
+    en: {
+      title: "Prayer",
+      scriptureLabel: "✦ Scripture of the Day",
+      praiseLabel: "✦ Praise and Thanks",
+      praisePlaceholder: "Write your praises and thanks to God today...",
+      prayersLabel: "✦ Prayers For",
+      prayerInputPlaceholder: "Enter a prayer request...",
+      addBtn: "+ Add",
+      answeredLabel: "✦ Answered Prayers",
+      answeredInputPlaceholder: "Write an answered prayer...",
+      heartLabel: "✦ On My Heart Today",
+      heartPlaceholder: "What is on your heart today? Write freely...",
+      footerQuote: '"Go where your best prayers take you."',
+      footerAttr: "— Frederick Buechner",
+      tagSelf: "Self",
+      tagFamily: "Family",
+      tagFriends: "Friends",
+      tagChurch: "Church",
+      tagWork: "Work",
+      tagNation: "Nation",
+      tagOther: "Other",
+      noPrayers: "No prayer requests yet. Add one above.",
+      noAnswered: "No answered prayers yet. Add one above.",
+      answeredOn: "✦ Answered on:",
+      toggleLabel: "中文"
+    },
+    zh: {
+      title: "祷告",
+      scriptureLabel: "✦ 每日经文",
+      praiseLabel: "✦ 赞美与感恩",
+      praisePlaceholder: "写下你今天对上帝的赞美和感恩...",
+      prayersLabel: "✦ 代祷事项",
+      prayerInputPlaceholder: "输入祷告事项...",
+      addBtn: "+ 添加",
+      answeredLabel: "✦ 蒙应允的祷告",
+      answeredInputPlaceholder: "写下蒙应允的祷告...",
+      heartLabel: "✦ 今日心声",
+      heartPlaceholder: "今天你心里有什么？自由书写...",
+      footerQuote: '"去你最好的祷告带你去的地方。"',
+      footerAttr: "— 弗雷德里克·布赫纳",
+      tagSelf: "自己",
+      tagFamily: "家庭",
+      tagFriends: "朋友",
+      tagChurch: "教会",
+      tagWork: "工作",
+      tagNation: "国家",
+      tagOther: "其他",
+      noPrayers: "还没有祷告事项，请在上方添加。",
+      noAnswered: "还没有蒙应允的祷告，请在上方添加。",
+      answeredOn: "✦ 应允日期：",
+      toggleLabel: "EN"
+    }
+  };
+
+  // Tag name translations for rendering prayer items
+  const tagNames = {
+    en: { self: "Self", family: "Family", friends: "Friends", church: "Church", work: "Work", nation: "Nation", other: "Other" },
+    zh: { self: "自己", family: "家庭", friends: "朋友", church: "教会", work: "工作", nation: "国家", other: "其他" }
+  };
+
+  let currentLang = localStorage.getItem('prayerJournalLang') || 'en';
+
+  function toggleLanguage() {
+    currentLang = currentLang === 'en' ? 'zh' : 'en';
+    localStorage.setItem('prayerJournalLang', currentLang);
+    applyLanguage();
+  }
+
+  function applyLanguage() {
+    const t = i18n[currentLang];
+
+    // Update toggle button text
+    document.getElementById('langToggle').textContent = t.toggleLabel;
+
+    // Update all data-i18n elements (text content)
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      const key = el.getAttribute('data-i18n');
+      if (t[key]) el.textContent = t[key];
+    });
+
+    // Update all data-i18n-placeholder elements
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (t[key]) el.placeholder = t[key];
+    });
+
+    // Update date display
+    showDate();
+
+    // Re-render dynamic lists with new language
+    renderPrayers();
+    renderAnswered();
+  }
+
+  // ════════════════════════════════════════
+  //  365 BIBLE VERSES
+  //  Each entry has: text + reference
+  // ════════════════════════════════════════
+  const verses = [
+    { text: "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.", ref: "John 3:16" },
+    { text: "The Lord is my shepherd, I lack nothing.", ref: "Psalm 23:1" },
+    { text: "I can do all this through him who gives me strength.", ref: "Philippians 4:13" },
+    { text: "Trust in the Lord with all your heart and lean not on your own understanding.", ref: "Proverbs 3:5" },
+    { text: "Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.", ref: "Joshua 1:9" },
+    { text: "And we know that in all things God works for the good of those who love him.", ref: "Romans 8:28" },
+    { text: "Come to me, all you who are weary and burdened, and I will give you rest.", ref: "Matthew 11:28" },
+    { text: "The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you.", ref: "Numbers 6:24-25" },
+    { text: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.", ref: "Jeremiah 29:11" },
+    { text: "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.", ref: "Philippians 4:6" },
+    { text: "The Lord is my light and my salvation — whom shall I fear?", ref: "Psalm 27:1" },
+    { text: "Love the Lord your God with all your heart and with all your soul and with all your mind.", ref: "Matthew 22:37" },
+    { text: "But those who hope in the Lord will renew their strength. They will soar on wings like eagles.", ref: "Isaiah 40:31" },
+    { text: "Greater love has no one than this: to lay down one's life for one's friends.", ref: "John 15:13" },
+    { text: "The peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.", ref: "Philippians 4:7" },
+    { text: "Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.", ref: "Matthew 7:7" },
+    { text: "I am the way and the truth and the life. No one comes to the Father except through me.", ref: "John 14:6" },
+    { text: "Your word is a lamp for my feet, a light on my path.", ref: "Psalm 119:105" },
+    { text: "Be kind and compassionate to one another, forgiving each other, just as in Christ God forgave you.", ref: "Ephesians 4:32" },
+    { text: "The Lord is close to the brokenhearted and saves those who are crushed in spirit.", ref: "Psalm 34:18" },
+    { text: "Let everything that has breath praise the Lord.", ref: "Psalm 150:6" },
+    { text: "Delight yourself in the Lord, and he will give you the desires of your heart.", ref: "Psalm 37:4" },
+    { text: "Cast all your anxiety on him because he cares for you.", ref: "1 Peter 5:7" },
+    { text: "Even though I walk through the darkest valley, I will fear no evil, for you are with me.", ref: "Psalm 23:4" },
+    { text: "Rejoice in the Lord always. I will say it again: Rejoice!", ref: "Philippians 4:4" },
+    { text: "For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.", ref: "2 Timothy 1:7" },
+    { text: "Whoever dwells in the shelter of the Most High will rest in the shadow of the Almighty.", ref: "Psalm 91:1" },
+    { text: "In the beginning was the Word, and the Word was with God, and the Word was God.", ref: "John 1:1" },
+    { text: "Create in me a pure heart, O God, and renew a steadfast spirit within me.", ref: "Psalm 51:10" },
+    { text: "My grace is sufficient for you, for my power is made perfect in weakness.", ref: "2 Corinthians 12:9" },
+    { text: "This is the day the Lord has made; let us rejoice and be glad in it.", ref: "Psalm 118:24" },
+    { text: "Be still, and know that I am God.", ref: "Psalm 46:10" },
+    { text: "The name of the Lord is a fortified tower; the righteous run to it and are safe.", ref: "Proverbs 18:10" },
+    { text: "Seek first his kingdom and his righteousness, and all these things will be given to you as well.", ref: "Matthew 6:33" },
+    { text: "I have been crucified with Christ and I no longer live, but Christ lives in me.", ref: "Galatians 2:20" },
+    { text: "God is our refuge and strength, an ever-present help in trouble.", ref: "Psalm 46:1" },
+    { text: "Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.", ref: "Matthew 5:16" },
+    { text: "The Lord your God is with you, the Mighty Warrior who saves. He will take great delight in you.", ref: "Zephaniah 3:17" },
+    { text: "Do not conform to the pattern of this world, but be transformed by the renewing of your mind.", ref: "Romans 12:2" },
+    { text: "For it is by grace you have been saved, through faith — and this is not from yourselves, it is the gift of God.", ref: "Ephesians 2:8" },
+    { text: "The Lord is my strength and my song; he has given me victory.", ref: "Exodus 15:2" },
+    { text: "Whatever you do, work at it with all your heart, as working for the Lord.", ref: "Colossians 3:23" },
+    { text: "Blessed are the pure in heart, for they will see God.", ref: "Matthew 5:8" },
+    { text: "I praise you because I am fearfully and wonderfully made.", ref: "Psalm 139:14" },
+    { text: "No weapon forged against you will prevail.", ref: "Isaiah 54:17" },
+    { text: "For God did not send his Son into the world to condemn the world, but to save the world through him.", ref: "John 3:17" },
+    { text: "He heals the brokenhearted and binds up their wounds.", ref: "Psalm 147:3" },
+    { text: "My help comes from the Lord, the Maker of heaven and earth.", ref: "Psalm 121:2" },
+    { text: "Therefore, if anyone is in Christ, the new creation has come: The old has gone, the new is here!", ref: "2 Corinthians 5:17" },
+    { text: "I will never leave you nor forsake you.", ref: "Hebrews 13:5" },
+    { text: "The Lord is good to all; he has compassion on all he has made.", ref: "Psalm 145:9" },
+    { text: "Love is patient, love is kind. It does not envy, it does not boast, it is not proud.", ref: "1 Corinthians 13:4" },
+    { text: "Blessed are the peacemakers, for they will be called children of God.", ref: "Matthew 5:9" },
+    { text: "The Lord is my rock, my fortress and my deliverer.", ref: "Psalm 18:2" },
+    { text: "Give thanks to the Lord, for he is good; his love endures forever.", ref: "Psalm 107:1" },
+    { text: "Jesus Christ is the same yesterday and today and forever.", ref: "Hebrews 13:8" },
+    { text: "You will keep in perfect peace those whose minds are steadfast, because they trust in you.", ref: "Isaiah 26:3" },
+    { text: "Teach us to number our days, that we may gain a heart of wisdom.", ref: "Psalm 90:12" },
+    { text: "The Lord reigns, let the earth be glad.", ref: "Psalm 97:1" },
+    { text: "I can do everything through Christ, who gives me strength.", ref: "Philippians 4:13 NLT" },
+    { text: "Blessed are those who mourn, for they will be comforted.", ref: "Matthew 5:4" },
+    { text: "He gives strength to the weary and increases the power of the weak.", ref: "Isaiah 40:29" },
+    { text: "I lift up my eyes to the mountains — where does my help come from?", ref: "Psalm 121:1" },
+    { text: "The Lord is gracious and compassionate, slow to anger and rich in love.", ref: "Psalm 145:8" },
+    { text: "Blessed is the one who does not walk in step with the wicked.", ref: "Psalm 1:1" },
+    { text: "God is love. Whoever lives in love lives in God, and God in them.", ref: "1 John 4:16" },
+    { text: "The Lord is my shepherd; I shall not want.", ref: "Psalm 23:1 KJV" },
+    { text: "He is before all things, and in him all things hold together.", ref: "Colossians 1:17" },
+    { text: "Enter his gates with thanksgiving and his courts with praise.", ref: "Psalm 100:4" },
+    { text: "Take delight in the Lord, and he will give you the desires of your heart.", ref: "Psalm 37:4" },
+    { text: "Do to others as you would have them do to you.", ref: "Luke 6:31" },
+    { text: "The Lord your God is a consuming fire, a jealous God.", ref: "Deuteronomy 4:24" },
+    { text: "Blessed are the merciful, for they will be shown mercy.", ref: "Matthew 5:7" },
+    { text: "He who began a good work in you will carry it on to completion.", ref: "Philippians 1:6" },
+    { text: "Let us not become weary in doing good, for at the proper time we will reap a harvest.", ref: "Galatians 6:9" },
+    { text: "How beautiful on the mountains are the feet of those who bring good news.", ref: "Isaiah 52:7" },
+    { text: "For all have sinned and fall short of the glory of God.", ref: "Romans 3:23" },
+    { text: "The righteous person may have many troubles, but the Lord delivers him from them all.", ref: "Psalm 34:19" },
+    { text: "I am the bread of life. Whoever comes to me will never go hungry.", ref: "John 6:35" },
+    { text: "The Lord is not slow in keeping his promise, as some understand slowness.", ref: "2 Peter 3:9" },
+    { text: "Now faith is confidence in what we hope for and assurance about what we do not see.", ref: "Hebrews 11:1" },
+    { text: "Commit to the Lord whatever you do, and he will establish your plans.", ref: "Proverbs 16:3" },
+    { text: "Let the morning bring me word of your unfailing love.", ref: "Psalm 143:8" },
+    { text: "If we confess our sins, he is faithful and just and will forgive us our sins.", ref: "1 John 1:9" },
+    { text: "I am the resurrection and the life. The one who believes in me will live, even though they die.", ref: "John 11:25" },
+    { text: "Have I not commanded you? Be strong and courageous.", ref: "Joshua 1:9" },
+    { text: "The Lord is my portion; therefore I will wait for him.", ref: "Lamentations 3:24" },
+    { text: "For with God nothing shall be impossible.", ref: "Luke 1:37 KJV" },
+    { text: "Taste and see that the Lord is good; blessed is the one who takes refuge in him.", ref: "Psalm 34:8" },
+    { text: "May the God of hope fill you with all joy and peace as you trust in him.", ref: "Romans 15:13" },
+    { text: "Draw near to God and he will draw near to you.", ref: "James 4:8" },
+    { text: "He makes me lie down in green pastures, he leads me beside quiet waters.", ref: "Psalm 23:2" },
+    { text: "In him we have redemption through his blood, the forgiveness of sins.", ref: "Ephesians 1:7" },
+    { text: "The Spirit of the Lord is on me, because he has anointed me.", ref: "Luke 4:18" },
+    { text: "Whoever believes in me, as Scripture has said, rivers of living water will flow from within them.", ref: "John 7:38" },
+    { text: "For to me, to live is Christ and to die is gain.", ref: "Philippians 1:21" },
+    { text: "Therefore do not worry about tomorrow, for tomorrow will worry about itself.", ref: "Matthew 6:34" },
+    { text: "The fear of the Lord is the beginning of wisdom.", ref: "Proverbs 9:10" },
+    { text: "How precious to me are your thoughts, God! How vast is the sum of them!", ref: "Psalm 139:17" },
+    { text: "Before I formed you in the womb I knew you.", ref: "Jeremiah 1:5" },
+    { text: "Where can I go from your Spirit? Where can I flee from your presence?", ref: "Psalm 139:7" },
+    { text: "Surely goodness and love will follow me all the days of my life.", ref: "Psalm 23:6" },
+    { text: "Let the word of Christ dwell in you richly.", ref: "Colossians 3:16" },
+    { text: "I am the vine; you are the branches. If you remain in me and I in you, you will bear much fruit.", ref: "John 15:5" },
+    { text: "For the wages of sin is death, but the gift of God is eternal life in Christ Jesus our Lord.", ref: "Romans 6:23" },
+    { text: "But the fruit of the Spirit is love, joy, peace, forbearance, kindness, goodness, faithfulness.", ref: "Galatians 5:22" },
+    { text: "I sought the Lord, and he answered me; he delivered me from all my fears.", ref: "Psalm 34:4" },
+    { text: "The Lord is my strength and my shield; my heart trusts in him, and he helps me.", ref: "Psalm 28:7" },
+    { text: "You are the light of the world. A town built on a hill cannot be hidden.", ref: "Matthew 5:14" },
+    { text: "Submit yourselves, then, to God. Resist the devil, and he will flee from you.", ref: "James 4:7" },
+    { text: "Every good and perfect gift is from above, coming down from the Father of the heavenly lights.", ref: "James 1:17" },
+    { text: "I have learned, in whatsoever state I am, therewith to be content.", ref: "Philippians 4:11 KJV" },
+    { text: "The Lord is my salvation; I will trust and not be afraid.", ref: "Isaiah 12:2" },
+    { text: "Shout for joy to the Lord, all the earth. Worship the Lord with gladness.", ref: "Psalm 100:1-2" },
+    { text: "Let us hold unswervingly to the hope we profess, for he who promised is faithful.", ref: "Hebrews 10:23" },
+    { text: "Jesus looked at them and said, 'With man this is impossible, but with God all things are possible.'", ref: "Matthew 19:26" },
+    { text: "You are my hiding place; you will protect me from trouble and surround me with songs of deliverance.", ref: "Psalm 32:7" },
+    { text: "Because of the Lord's great love we are not consumed, for his compassions never fail.", ref: "Lamentations 3:22" },
+    { text: "The Lord will fight for you; you need only to be still.", ref: "Exodus 14:14" },
+    { text: "Blessed is the nation whose God is the Lord.", ref: "Psalm 33:12" },
+    { text: "I will praise you, Lord my God, with all my heart; I will glorify your name forever.", ref: "Psalm 86:12" },
+    { text: "He restores my soul. He guides me along the right paths for his name's sake.", ref: "Psalm 23:3" },
+    { text: "Praise the Lord, my soul; all my inmost being, praise his holy name.", ref: "Psalm 103:1" },
+    { text: "The Lord is righteous in all his ways and faithful in all he does.", ref: "Psalm 145:17" },
+    { text: "Your righteousness is like the highest mountains, your justice like the great deep.", ref: "Psalm 36:6" },
+    { text: "Let us then approach God's throne of grace with confidence.", ref: "Hebrews 4:16" },
+    { text: "And the God of all grace, who called you to his eternal glory in Christ, will himself restore you.", ref: "1 Peter 5:10" },
+    { text: "You prepare a table before me in the presence of my enemies.", ref: "Psalm 23:5" },
+    { text: "Praise be to the God and Father of our Lord Jesus Christ, the Father of compassion and the God of all comfort.", ref: "2 Corinthians 1:3" },
+    { text: "Not by might nor by power, but by my Spirit, says the Lord Almighty.", ref: "Zechariah 4:6" },
+    { text: "For the Lord God is a sun and shield; the Lord bestows favor and honor.", ref: "Psalm 84:11" },
+    { text: "The grass withers and the flowers fall, but the word of our God endures forever.", ref: "Isaiah 40:8" },
+    { text: "Jesus said, 'I am the light of the world. Whoever follows me will never walk in darkness.'", ref: "John 8:12" },
+    { text: "And my God will meet all your needs according to the riches of his glory in Christ Jesus.", ref: "Philippians 4:19" },
+    { text: "Be joyful in hope, patient in affliction, faithful in prayer.", ref: "Romans 12:12" },
+    { text: "I waited patiently for the Lord; he turned to me and heard my cry.", ref: "Psalm 40:1" },
+    { text: "The earth is the Lord's, and everything in it, the world, and all who live in it.", ref: "Psalm 24:1" },
+    { text: "There is no fear in love. But perfect love drives out fear.", ref: "1 John 4:18" },
+    { text: "Blessed are those who hunger and thirst for righteousness, for they will be filled.", ref: "Matthew 5:6" },
+    { text: "The Lord your God in your midst, the Mighty One, will save.", ref: "Zephaniah 3:17 NKJV" },
+    { text: "For it is God who works in you to will and to act in order to fulfill his good purpose.", ref: "Philippians 2:13" },
+    { text: "Be merciful, just as your Father is merciful.", ref: "Luke 6:36" },
+    { text: "I am with you always, to the very end of the age.", ref: "Matthew 28:20" },
+    { text: "Surely he took up our pain and bore our suffering.", ref: "Isaiah 53:4" },
+    { text: "We love because he first loved us.", ref: "1 John 4:19" },
+    { text: "Rejoice always, pray continually, give thanks in all circumstances.", ref: "1 Thessalonians 5:16-18" },
+    { text: "You are altogether beautiful, my darling; there is no flaw in you.", ref: "Song of Solomon 4:7" },
+    { text: "The Lord is not slow in keeping his promise, as some understand slowness. Instead he is patient with you.", ref: "2 Peter 3:9" },
+    { text: "For I am convinced that neither death nor life, neither angels nor demons can separate us from the love of God.", ref: "Romans 8:38-39" },
+    { text: "Humble yourselves before the Lord, and he will lift you up.", ref: "James 4:10" },
+    { text: "The Lord is good, a refuge in times of trouble. He cares for those who trust in him.", ref: "Nahum 1:7" },
+    { text: "For we are God's handiwork, created in Christ Jesus to do good works.", ref: "Ephesians 2:10" },
+    { text: "He will wipe every tear from their eyes. There will be no more death or mourning.", ref: "Revelation 21:4" },
+    { text: "Blessed are the poor in spirit, for theirs is the kingdom of heaven.", ref: "Matthew 5:3" },
+    { text: "Know that the Lord is God. It is he who made us, and we are his.", ref: "Psalm 100:3" },
+    { text: "The Lord upholds all who fall and lifts up all who are bowed down.", ref: "Psalm 145:14" },
+    { text: "I will instruct you and teach you in the way you should go.", ref: "Psalm 32:8" },
+    { text: "Therefore, since we have been justified through faith, we have peace with God through our Lord Jesus Christ.", ref: "Romans 5:1" },
+    { text: "He is like a tree planted by streams of water, which yields its fruit in season.", ref: "Psalm 1:3" },
+    { text: "Stand firm, and you will win life.", ref: "Luke 21:19" },
+    { text: "God is spirit, and his worshipers must worship in the Spirit and in truth.", ref: "John 4:24" },
+    { text: "Do not let your hearts be troubled. You believe in God; believe also in me.", ref: "John 14:1" },
+    { text: "The Lord bless you and keep you.", ref: "Numbers 6:24" },
+    { text: "I will sing to the Lord all my life; I will sing praise to my God as long as I live.", ref: "Psalm 104:33" },
+    { text: "One thing I ask from the Lord, this only do I seek: that I may dwell in the house of the Lord all the days of my life.", ref: "Psalm 27:4" },
+    { text: "How great is the love the Father has lavished on us, that we should be called children of God!", ref: "1 John 3:1" },
+    { text: "He has made everything beautiful in its time.", ref: "Ecclesiastes 3:11" },
+    { text: "For Christ also suffered once for sins, the righteous for the unrighteous, to bring you to God.", ref: "1 Peter 3:18" },
+    { text: "I can do all things through Christ who strengthens me.", ref: "Philippians 4:13 NKJV" },
+    { text: "The name of Jesus is above every name.", ref: "Philippians 2:9" },
+    { text: "Blessed are those who are persecuted because of righteousness, for theirs is the kingdom of heaven.", ref: "Matthew 5:10" },
+    { text: "For the Lord is good and his love endures forever; his faithfulness continues through all generations.", ref: "Psalm 100:5" },
+    { text: "Look to the Lord and his strength; seek his face always.", ref: "Psalm 105:4" },
+    { text: "Do not be overcome by evil, but overcome evil with good.", ref: "Romans 12:21" },
+    { text: "The Lord will keep you from all harm — he will watch over your life.", ref: "Psalm 121:7" },
+    { text: "For nothing will be impossible with God.", ref: "Luke 1:37 ESV" },
+    { text: "God has not given us a spirit of fear, but of power and of love and of a sound mind.", ref: "2 Timothy 1:7 NKJV" },
+    { text: "Show me your ways, Lord, teach me your paths.", ref: "Psalm 25:4" },
+    { text: "In the same way, let your light shine before others.", ref: "Matthew 5:16" },
+    { text: "He is the atoning sacrifice for our sins, and not only for ours but also for the sins of the whole world.", ref: "1 John 2:2" },
+    { text: "Set your minds on things above, not on earthly things.", ref: "Colossians 3:2" },
+    { text: "I sought the Lord, and he answered me; he delivered me from all my fears.", ref: "Psalm 34:4" },
+    { text: "Whoever does not love does not know God, because God is love.", ref: "1 John 4:8" },
+    { text: "He is the image of the invisible God, the firstborn over all creation.", ref: "Colossians 1:15" },
+    { text: "Give ear to my words, O Lord, consider my sighing.", ref: "Psalm 5:1" },
+    { text: "He wakens me morning by morning, wakens my ear to listen like one being instructed.", ref: "Isaiah 50:4" },
+    { text: "Therefore, there is now no condemnation for those who are in Christ Jesus.", ref: "Romans 8:1" },
+    { text: "Let us not give up meeting together, as some are in the habit of doing.", ref: "Hebrews 10:25" },
+    { text: "The name of the Lord is a strong tower; the righteous run to it and are safe.", ref: "Proverbs 18:10" },
+    { text: "Be still before the Lord and wait patiently for him.", ref: "Psalm 37:7" },
+    { text: "This is the confidence we have in approaching God: that if we ask anything according to his will, he hears us.", ref: "1 John 5:14" },
+    { text: "Whatever is true, whatever is noble, whatever is right, whatever is pure — think about such things.", ref: "Philippians 4:8" },
+    { text: "He who watches over Israel will neither slumber nor sleep.", ref: "Psalm 121:4" },
+    { text: "Praise be to the Lord, to God our Savior, who daily bears our burdens.", ref: "Psalm 68:19" },
+    { text: "Those who know your name trust in you, for you, Lord, have never forsaken those who seek you.", ref: "Psalm 9:10" },
+    { text: "So do not fear, for I am with you; do not be dismayed, for I am your God.", ref: "Isaiah 41:10" },
+    { text: "The Lord is my shepherd; I have all that I need.", ref: "Psalm 23:1 NLT" },
+    { text: "But God demonstrates his own love for us in this: While we were still sinners, Christ died for us.", ref: "Romans 5:8" },
+    { text: "My soul glorifies the Lord and my spirit rejoices in God my Savior.", ref: "Luke 1:46-47" },
+    { text: "The heavens declare the glory of God; the skies proclaim the work of his hands.", ref: "Psalm 19:1" },
+    { text: "He has shown you, O mortal, what is good. And what does the Lord require of you?", ref: "Micah 6:8" },
+    { text: "Act justly, love mercy and walk humbly with your God.", ref: "Micah 6:8" },
+    { text: "For where two or three gather in my name, there am I with them.", ref: "Matthew 18:20" },
+    { text: "No temptation has overtaken you except what is common to mankind. And God is faithful.", ref: "1 Corinthians 10:13" },
+    { text: "I have hidden your word in my heart that I might not sin against you.", ref: "Psalm 119:11" },
+    { text: "With man this is impossible, but not with God; all things are possible with God.", ref: "Mark 10:27" },
+    { text: "Jesus wept.", ref: "John 11:35" },
+    { text: "Arise, shine, for your light has come, and the glory of the Lord rises upon you.", ref: "Isaiah 60:1" },
+    { text: "Blessed is she who has believed that the Lord would fulfill his promises to her!", ref: "Luke 1:45" },
+    { text: "But seek first the kingdom of God and his righteousness.", ref: "Matthew 6:33 ESV" },
+    { text: "The steps of a good man are ordered by the Lord.", ref: "Psalm 37:23 KJV" },
+    { text: "O Lord, you have searched me and you know me.", ref: "Psalm 139:1" },
+    { text: "As the deer pants for streams of water, so my soul pants for you, my God.", ref: "Psalm 42:1" },
+    { text: "Darkness is as light to you, O God.", ref: "Psalm 139:12" },
+    { text: "Oh, the depth of the riches of the wisdom and knowledge of God!", ref: "Romans 11:33" },
+    { text: "I am the Alpha and the Omega, the First and the Last, the Beginning and the End.", ref: "Revelation 22:13" },
+    { text: "The Lord is with me; I will not be afraid. What can mere mortals do to me?", ref: "Psalm 118:6" },
+    { text: "But as for me, it is good to be near God.", ref: "Psalm 73:28" },
+    { text: "And we all, who with unveiled faces contemplate the Lord's glory, are being transformed into his image.", ref: "2 Corinthians 3:18" },
+    { text: "When I am afraid, I put my trust in you.", ref: "Psalm 56:3" },
+    { text: "The Lord is close to all who call on him, to all who call on him in truth.", ref: "Psalm 145:18" },
+    { text: "My soul finds rest in God alone; my salvation comes from him.", ref: "Psalm 62:1" },
+    { text: "He is not here; he has risen!", ref: "Luke 24:6" },
+    { text: "Your kingdom come, your will be done, on earth as it is in heaven.", ref: "Matthew 6:10" },
+    { text: "Do you not know? Have you not heard? The Lord is the everlasting God.", ref: "Isaiah 40:28" },
+    { text: "The Lord will accomplish what concerns me.", ref: "Psalm 138:8 NASB" },
+    { text: "I will not leave you as orphans; I will come to you.", ref: "John 14:18" },
+    { text: "He will cover you with his feathers, and under his wings you will find refuge.", ref: "Psalm 91:4" },
+    { text: "If God is for us, who can be against us?", ref: "Romans 8:31" },
+    { text: "He has told you, O man, what is good; and what does the Lord require of you but to do justice, and to love kindness, and to walk humbly with your God?", ref: "Micah 6:8 ESV" },
+    { text: "Who shall separate us from the love of Christ? Shall trouble or hardship or persecution?", ref: "Romans 8:35" },
+    { text: "I will never leave you nor forsake you. So we say with confidence, the Lord is my helper.", ref: "Hebrews 13:5-6" },
+    { text: "Praise the Lord, all his heavenly hosts, you his servants who do his will.", ref: "Psalm 103:21" },
+    { text: "I trust in your unfailing love; my heart rejoices in your salvation.", ref: "Psalm 13:5" },
+    { text: "The Lord your God is gracious and compassionate. He will not turn his face from you if you return to him.", ref: "2 Chronicles 30:9" },
+    { text: "In repentance and rest is your salvation, in quietness and trust is your strength.", ref: "Isaiah 30:15" },
+    { text: "Seek the Lord while he may be found; call on him while he is near.", ref: "Isaiah 55:6" },
+    { text: "So we fix our eyes not on what is seen, but on what is unseen, since what is seen is temporary.", ref: "2 Corinthians 4:18" },
+    { text: "He will reign on David's throne and over his kingdom, establishing and upholding it with justice and righteousness.", ref: "Isaiah 9:7" },
+    { text: "They will see his face, and his name will be on their foreheads.", ref: "Revelation 22:4" },
+    { text: "For to us a child is born, to us a son is given, and the government will be on his shoulders.", ref: "Isaiah 9:6" },
+    { text: "The Lord is good to those whose hope is in him, to the one who seeks him.", ref: "Lamentations 3:25" },
+    { text: "But the Lord said to Samuel, 'Do not consider his appearance or his height... The Lord looks at the heart.'", ref: "1 Samuel 16:7" },
+    { text: "Blessed are you when people insult you, persecute you and falsely say all kinds of evil against you because of me.", ref: "Matthew 5:11" },
+    { text: "The Lord makes firm the steps of the one who delights in him.", ref: "Psalm 37:23" },
+    { text: "Yet I am always with you; you hold me by my right hand.", ref: "Psalm 73:23" },
+    { text: "Now to him who is able to do immeasurably more than all we ask or imagine, according to his power.", ref: "Ephesians 3:20" },
+    { text: "God, who began the good work within you, will continue his work until it is finally finished.", ref: "Philippians 1:6 NLT" },
+    { text: "But the eyes of the Lord are on those who fear him, on those whose hope is in his unfailing love.", ref: "Psalm 33:18" },
+    { text: "Jesus replied: 'Love the Lord your God with all your heart and with all your soul and with all your mind.'", ref: "Matthew 22:37" },
+    { text: "Truly I tell you, if you have faith as small as a mustard seed, you can say to this mountain, 'Move.'", ref: "Matthew 17:20" },
+    { text: "He gives power to the faint; and to them that have no might he increases strength.", ref: "Isaiah 40:29 KJV" },
+    { text: "And he said unto me, My grace is sufficient for thee: for my strength is made perfect in weakness.", ref: "2 Corinthians 12:9 KJV" },
+    { text: "Those who wait on the Lord shall renew their strength; they shall mount up with wings like eagles.", ref: "Isaiah 40:31 NKJV" },
+    { text: "Peace I leave with you; my peace I give you. I do not give to you as the world gives.", ref: "John 14:27" },
+    { text: "The Lord is my strength and my defense; he has become my salvation.", ref: "Psalm 118:14" },
+    { text: "The Lord has done it this very day; let us rejoice today and be glad.", ref: "Psalm 118:24" },
+    { text: "You will seek me and find me when you seek me with all your heart.", ref: "Jeremiah 29:13" },
+    { text: "For everyone born of God overcomes the world. This is the victory that has overcome the world, even our faith.", ref: "1 John 5:4" },
+    { text: "I will exalt you, Lord, for you lifted me out of the depths.", ref: "Psalm 30:1" },
+    { text: "The Lord your God is in your midst, a mighty one who will save.", ref: "Zephaniah 3:17 ESV" },
+    { text: "For the Lord your God is the God of gods and the Lord of lords, the great God, mighty and awesome.", ref: "Deuteronomy 10:17" },
+    { text: "How sweet are your words to my taste, sweeter than honey to my mouth!", ref: "Psalm 119:103" },
+    { text: "Search me, God, and know my heart; test me and know my anxious thoughts.", ref: "Psalm 139:23" },
+    { text: "Therefore, as God's chosen people, holy and dearly loved, clothe yourselves with compassion, kindness, humility.", ref: "Colossians 3:12" },
+    { text: "He who dwells in the shelter of the Most High will rest in the shadow of the Almighty.", ref: "Psalm 91:1 NIV" },
+    { text: "The Lord is King for ever and ever.", ref: "Psalm 10:16" },
+    { text: "I will give thanks to the Lord because of his righteousness.", ref: "Psalm 7:17" },
+    { text: "Come near to God and he will come near to you.", ref: "James 4:8" },
+    { text: "Jesus answered, 'It is written: Man shall not live on bread alone, but on every word that comes from the mouth of God.'", ref: "Matthew 4:4" },
+    { text: "The Lord will fulfill his purpose for me; your steadfast love, O Lord, endures forever.", ref: "Psalm 138:8 ESV" },
+    { text: "No power in the sky above or in the earth below — indeed, nothing in all creation will ever be able to separate us from the love of God.", ref: "Romans 8:39 NLT" },
+    { text: "Those who look to him are radiant; their faces are never covered with shame.", ref: "Psalm 34:5" },
+    { text: "Jesus said to her, 'I am the resurrection and the life.'", ref: "John 11:25" },
+    { text: "The Lord is my light and my salvation; whom shall I fear? The Lord is the stronghold of my life.", ref: "Psalm 27:1 ESV" },
+    { text: "Grace and peace to you from God our Father and the Lord Jesus Christ.", ref: "Philippians 1:2" },
+    { text: "Do not be afraid; do not be discouraged.", ref: "Deuteronomy 31:8" },
+    { text: "I will praise you forever for what you have done; in your name I will hope.", ref: "Psalm 52:9" },
+    { text: "The Lord is near to all who call on him, to all who call on him in truth.", ref: "Psalm 145:18" },
+    { text: "For I am the Lord your God who takes hold of your right hand and says to you, Do not fear; I will help you.", ref: "Isaiah 41:13" },
+    { text: "You, Lord, are forgiving and good, abounding in love to all who call to you.", ref: "Psalm 86:5" },
+    { text: "But you, Lord, are a shield around me, my glory, the One who lifts my head high.", ref: "Psalm 3:3" },
+    { text: "Keep me safe, my God, for in you I take refuge.", ref: "Psalm 16:1" },
+    { text: "The lines have fallen for me in pleasant places; indeed, I have a beautiful inheritance.", ref: "Psalm 16:6 ESV" },
+    { text: "You make known to me the path of life; you will fill me with joy in your presence.", ref: "Psalm 16:11" },
+    { text: "Whom have I in heaven but you? And earth has nothing I desire besides you.", ref: "Psalm 73:25" },
+    { text: "The Lord has established his throne in heaven, and his kingdom rules over all.", ref: "Psalm 103:19" },
+    { text: "Even to your old age and gray hairs I am he, I am he who will sustain you.", ref: "Isaiah 46:4" },
+    { text: "See, I am doing a new thing! Now it springs up; do you not perceive it?", ref: "Isaiah 43:19" },
+    { text: "He wakens me morning by morning, wakens my ear to listen like one being taught.", ref: "Isaiah 50:4" },
+    { text: "Come, all you who are thirsty, come to the waters; and you who have no money, come, buy and eat!", ref: "Isaiah 55:1" },
+    { text: "As a father has compassion on his children, so the Lord has compassion on those who fear him.", ref: "Psalm 103:13" },
+    { text: "Bless the Lord, O my soul, and all that is within me, bless his holy name.", ref: "Psalm 103:1 ESV" },
+    { text: "You are my God, and I will praise you; you are my God, and I will exalt you.", ref: "Psalm 118:28" },
+    { text: "The Lord is King! Let the nations tremble!", ref: "Psalm 99:1 NLT" },
+    { text: "My mouth is filled with your praise, declaring your splendor all day long.", ref: "Psalm 71:8" },
+    { text: "I cry out to God Most High, to God who fulfills his purpose for me.", ref: "Psalm 57:2" },
+    { text: "My flesh and my heart may fail, but God is the strength of my heart and my portion forever.", ref: "Psalm 73:26" },
+    { text: "The Lord is compassionate and gracious, slow to anger, abounding in love.", ref: "Psalm 103:8" },
+    { text: "He will not let your foot slip — he who watches over you will not slumber.", ref: "Psalm 121:3" },
+    { text: "Not to us, Lord, not to us but to your name be the glory.", ref: "Psalm 115:1" },
+    { text: "How can a young person stay on the path of purity? By living according to your word.", ref: "Psalm 119:9" },
+    { text: "The earth is filled with your love, Lord; teach me your decrees.", ref: "Psalm 119:64" },
+    { text: "Direct my footsteps according to your word; let no sin rule over me.", ref: "Psalm 119:133" },
+    { text: "Your word is very pure; therefore your servant loves it.", ref: "Psalm 119:140 NKJV" },
+    { text: "The unfolding of your words gives light; it gives understanding to the simple.", ref: "Psalm 119:130" },
+    { text: "Open my eyes that I may see wonderful things in your law.", ref: "Psalm 119:18" },
+    { text: "I rejoice in your word like one who discovers a great treasure.", ref: "Psalm 119:162 NLT" },
+    { text: "Your statutes are my heritage forever; they are the joy of my heart.", ref: "Psalm 119:111" },
+    { text: "Your love, Lord, reaches to the heavens, your faithfulness to the skies.", ref: "Psalm 36:5" },
+    { text: "The Lord reigns forever, your God, O Zion, for all generations. Praise the Lord.", ref: "Psalm 146:10" },
+    { text: "For as high as the heavens are above the earth, so great is his love for those who fear him.", ref: "Psalm 103:11" },
+    { text: "He gives food to every creature. His love endures forever.", ref: "Psalm 136:25" },
+    { text: "The Lord is slow to anger, abounding in love and forgiving sin and rebellion.", ref: "Numbers 14:18" },
+    { text: "We have a great high priest who has ascended into heaven, Jesus the Son of God.", ref: "Hebrews 4:14" },
+    { text: "A new command I give you: Love one another. As I have loved you, so you must love one another.", ref: "John 13:34" },
+    { text: "This is how we know what love is: Jesus Christ laid down his life for us.", ref: "1 John 3:16" },
+    { text: "Carry each other's burdens, and in this way you will fulfill the law of Christ.", ref: "Galatians 6:2" },
+    { text: "Two are better than one, because they have a good return for their labor.", ref: "Ecclesiastes 4:9" },
+    { text: "A friend loves at all times, and a brother is born for a time of adversity.", ref: "Proverbs 17:17" },
+    { text: "Honor your father and your mother, so that you may live long in the land.", ref: "Exodus 20:12" },
+    { text: "Children are a heritage from the Lord, offspring a reward from him.", ref: "Psalm 127:3" },
+    { text: "As iron sharpens iron, so one person sharpens another.", ref: "Proverbs 27:17" },
+    { text: "The tongue has the power of life and death.", ref: "Proverbs 18:21" },
+    { text: "Pleasant words are a honeycomb, sweet to the soul and healing to the bones.", ref: "Proverbs 16:24" },
+    { text: "A cheerful heart is good medicine, but a crushed spirit dries up the bones.", ref: "Proverbs 17:22" },
+    { text: "For the revelation awaits an appointed time; it speaks of the end and will not prove false.", ref: "Habakkuk 2:3" },
+    { text: "Yet the Lord longs to be gracious to you; therefore he will rise up to show you compassion.", ref: "Isaiah 30:18" },
+    { text: "On this rock I will build my church, and the gates of Hades will not overcome it.", ref: "Matthew 16:18" },
+    { text: "Truly I tell you, whatever you did for one of the least of these brothers and sisters of mine, you did for me.", ref: "Matthew 25:40" },
+    { text: "For the Son of Man came to seek and to save the lost.", ref: "Luke 19:10" },
+    { text: "My sheep listen to my voice; I know them, and they follow me.", ref: "John 10:27" },
+    { text: "I am the good shepherd. The good shepherd lays down his life for the sheep.", ref: "John 10:11" },
+    { text: "Very truly I tell you, whoever hears my word and believes him who sent me has eternal life.", ref: "John 5:24" },
+    { text: "Blessed are those who have not seen and yet have believed.", ref: "John 20:29" },
+    { text: "For the kingdom of God is not a matter of eating and drinking, but of righteousness, peace and joy in the Holy Spirit.", ref: "Romans 14:17" },
+    { text: "Christ is the culmination of the law so that there may be righteousness for everyone who believes.", ref: "Romans 10:4" },
+    { text: "How, then, can they call on the one they have not believed in?", ref: "Romans 10:14" },
+    { text: "Consequently, faith comes from hearing the message, and the message is heard through the word about Christ.", ref: "Romans 10:17" },
+    { text: "For God's gifts and his call are irrevocable.", ref: "Romans 11:29" },
+    { text: "Offer your bodies as a living sacrifice, holy and pleasing to God — this is your true and proper worship.", ref: "Romans 12:1" },
+    { text: "Do not repay anyone evil for evil. Be careful to do what is right in the eyes of everyone.", ref: "Romans 12:17" },
+    { text: "Love does no harm to a neighbor. Therefore love is the fulfillment of the law.", ref: "Romans 13:10" },
+    { text: "Accept one another, then, just as Christ accepted you, in order to bring praise to God.", ref: "Romans 15:7" },
+    { text: "For the message of the cross is foolishness to those who are perishing, but to us who are being saved it is the power of God.", ref: "1 Corinthians 1:18" },
+    { text: "Do you not know that your bodies are temples of the Holy Spirit?", ref: "1 Corinthians 6:19" },
+    { text: "Love never fails.", ref: "1 Corinthians 13:8" },
+    { text: "And now these three remain: faith, hope and love. But the greatest of these is love.", ref: "1 Corinthians 13:13" },
+    { text: "For the Lord is the Spirit, and wherever the Spirit of the Lord is, there is freedom.", ref: "2 Corinthians 3:17" },
+    { text: "We live by faith, not by sight.", ref: "2 Corinthians 5:7" },
+    { text: "God made him who had no sin to be sin for us, so that in him we might become the righteousness of God.", ref: "2 Corinthians 5:21" },
+    { text: "Godly sorrow brings repentance that leads to salvation and leaves no regret.", ref: "2 Corinthians 7:10" },
+    { text: "And God is able to bless you abundantly, so that in all things at all times, having all that you need, you will abound in every good work.", ref: "2 Corinthians 9:8" },
+    { text: "Neither circumcision nor uncircumcision means anything; what counts is the new creation.", ref: "Galatians 6:15" },
+    { text: "There is neither Jew nor Gentile, neither slave nor free, nor is there male and female, for you are all one in Christ Jesus.", ref: "Galatians 3:28" },
+    { text: "For our struggle is not against flesh and blood, but against the rulers, against the authorities.", ref: "Ephesians 6:12" },
+    { text: "Put on the full armor of God, so that you can take your stand against the devil's schemes.", ref: "Ephesians 6:11" },
+    { text: "I press on toward the goal to win the prize for which God has called me heavenward in Christ Jesus.", ref: "Philippians 3:14" },
+    { text: "The Lord is at hand.", ref: "Philippians 4:5 ESV" },
+    { text: "Let the peace of Christ rule in your hearts, since as members of one body you were called to peace.", ref: "Colossians 3:15" },
+    { text: "For the Lord himself will come down from heaven, with a loud command, with the voice of the archangel.", ref: "1 Thessalonians 4:16" },
+    { text: "May the Lord make your love increase and overflow for each other and for everyone else.", ref: "1 Thessalonians 3:12" },
+    { text: "To this end I strenuously contend with all the energy Christ so powerfully works in me.", ref: "Colossians 1:29" },
+    { text: "For God wanted them to know that the riches and glory of Christ are for you Gentiles, too.", ref: "Colossians 1:27 NLT" },
+    { text: "The Lord is not slow to fulfill his promise as some count slowness, but is patient toward you.", ref: "2 Peter 3:9 ESV" },
+    { text: "His divine power has given us everything we need for a godly life through our knowledge of him.", ref: "2 Peter 1:3" },
+    { text: "Do not merely listen to the word, and so deceive yourselves. Do what it says.", ref: "James 1:22" },
+    { text: "Religion that God our Father accepts as pure and faultless is this: to look after orphans and widows in their distress.", ref: "James 1:27" },
+    { text: "The prayer of a righteous person is powerful and effective.", ref: "James 5:16" },
+    { text: "Confess your sins to each other and pray for each other so that you may be healed.", ref: "James 5:16" },
+    { text: "You are a chosen people, a royal priesthood, a holy nation, God's special possession.", ref: "1 Peter 2:9" },
+    { text: "But in your hearts revere Christ as Lord. Always be prepared to give an answer for the hope that you have.", ref: "1 Peter 3:15" },
+    { text: "The end of all things is near. Therefore be alert and of sober mind so that you may pray.", ref: "1 Peter 4:7" },
+    { text: "See what great love the Father has lavished on us, that we should be called children of God!", ref: "1 John 3:1" },
+    { text: "Dear children, let us not love with words or speech but with actions and in truth.", ref: "1 John 3:18" },
+    { text: "And this is his command: to believe in the name of his Son, Jesus Christ, and to love one another.", ref: "1 John 3:23" },
+    { text: "I write these things to you who believe in the name of the Son of God so that you may know that you have eternal life.", ref: "1 John 5:13" },
+    { text: "Look, I am coming soon! My reward is with me, and I will give to each person according to what they have done.", ref: "Revelation 22:12" },
+    { text: "He who testifies to these things says, 'Yes, I am coming soon.' Amen. Come, Lord Jesus.", ref: "Revelation 22:20" },
+    { text: "Worthy is the Lamb, who was slain, to receive power and wealth and wisdom and strength.", ref: "Revelation 5:12" },
+    { text: "Holy, holy, holy is the Lord God Almighty, who was, and is, and is to come.", ref: "Revelation 4:8" },
+    { text: "To him who sits on the throne and to the Lamb be praise and honor and glory and power, for ever and ever!", ref: "Revelation 5:13" },
+    { text: "I am the Living One; I was dead, and now look, I am alive for ever and ever!", ref: "Revelation 1:18" },
+    { text: "Do not be afraid. I am the First and the Last.", ref: "Revelation 1:17" },
+    { text: "Here I am! I stand at the door and knock. If anyone hears my voice and opens the door, I will come in.", ref: "Revelation 3:20" },
+    { text: "Blessed are those who are invited to the wedding supper of the Lamb!", ref: "Revelation 19:9" },
+    { text: "I am making everything new!", ref: "Revelation 21:5" },
+    { text: "I am the Alpha and the Omega, the Beginning and the End.", ref: "Revelation 21:6" },
+    { text: "He who was seated on the throne said, 'I am making everything new!'", ref: "Revelation 21:5" },
+    { text: "Never will I leave you; never will I forsake you.", ref: "Hebrews 13:5 NIV" }
+  ];
+
+  // ════════════════════════════════════════
+  //  SHOW TODAY'S DATE
+  // ════════════════════════════════════════
+  function showDate() {
+    const today = new Date();
+    const locale = currentLang === 'zh' ? 'zh-CN' : 'en-US';
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('todayDate').textContent = today.toLocaleDateString(locale, options);
+  }
+
+  // ════════════════════════════════════════
+  //  PICK VERSE OF THE DAY
+  // ════════════════════════════════════════
+  function showVerse() {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), 0, 0);
+    const diff = today - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    const index = (dayOfYear - 1) % verses.length;
+
+    document.getElementById('verseText').textContent = verses[index].text;
+    document.getElementById('verseRef').textContent = '— ' + verses[index].ref;
+  }
+
+  // ════════════════════════════════════════
+  //  AUTO-SAVE TEXT AREAS
+  // ════════════════════════════════════════
+  function setupAutoSave(elementId, storageKey) {
+    const el = document.getElementById(elementId);
+    el.value = localStorage.getItem(storageKey) || '';
+    el.addEventListener('input', function() {
+      localStorage.setItem(storageKey, el.value);
+    });
+  }
+
+  // ════════════════════════════════════════
+  //  SECTION 3: PRAYER REQUESTS
+  // ════════════════════════════════════════
+  function loadPrayers() {
+    return JSON.parse(localStorage.getItem('prayerRequests') || '[]');
+  }
+
+  function savePrayers(prayers) {
+    localStorage.setItem('prayerRequests', JSON.stringify(prayers));
+  }
+
+  function addPrayer() {
+    const input = document.getElementById('prayerInput');
+    const tag = document.getElementById('prayerTag').value;
+    const text = input.value.trim();
+    if (!text) return;
+
+    const prayers = loadPrayers();
+    prayers.push({ text, tag });
+    savePrayers(prayers);
+    input.value = '';
+    renderPrayers();
+  }
+
+  function deletePrayer(index) {
+    const prayers = loadPrayers();
+    prayers.splice(index, 1);
+    savePrayers(prayers);
+    renderPrayers();
+  }
+
+  function renderPrayers() {
+    const prayers = loadPrayers();
+    const list = document.getElementById('prayerList');
+    list.innerHTML = '';
+
+    if (prayers.length === 0) {
+      list.innerHTML = '<p style="color:#aaa; font-size:0.85rem; font-style:italic; padding:8px 0;">' + i18n[currentLang].noPrayers + '</p>';
+      return;
+    }
+
+    prayers.forEach(function(prayer, index) {
+      const item = document.createElement('div');
+      item.className = 'prayer-item';
+      const displayTag = tagNames[currentLang][prayer.tag] || prayer.tag;
+      item.innerHTML = `
+        <span class="prayer-bullet">•</span>
+        <span class="prayer-item-text">${escapeHtml(prayer.text)}</span>
+        <span class="tag-pill tag-${escapeHtml(prayer.tag)}">${escapeHtml(displayTag)}</span>
+        <button class="btn-delete" onclick="deletePrayer(${index})" title="Remove">✕</button>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  document.getElementById('prayerInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addPrayer();
+  });
+
+  // ════════════════════════════════════════
+  //  SECTION 4: ANSWERED PRAYERS
+  // ════════════════════════════════════════
+  function loadAnswered() {
+    return JSON.parse(localStorage.getItem('answeredPrayers') || '[]');
+  }
+
+  function saveAnswered(list) {
+    localStorage.setItem('answeredPrayers', JSON.stringify(list));
+  }
+
+  function addAnswered() {
+    const input = document.getElementById('answeredInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const list = loadAnswered();
+    list.push({ text, answered: false, date: '' });
+    saveAnswered(list);
+    input.value = '';
+    renderAnswered();
+  }
+
+  function toggleAnswered(index) {
+    const list = loadAnswered();
+    list[index].answered = !list[index].answered;
+    saveAnswered(list);
+    renderAnswered();
+  }
+
+  function saveAnsweredDate(index, value) {
+    const list = loadAnswered();
+    list[index].date = value;
+    saveAnswered(list);
+  }
+
+  function deleteAnswered(index) {
+    const list = loadAnswered();
+    list.splice(index, 1);
+    saveAnswered(list);
+    renderAnswered();
+  }
+
+  function renderAnswered() {
+    const list = loadAnswered();
+    const container = document.getElementById('answeredList');
+    container.innerHTML = '';
+
+    if (list.length === 0) {
+      container.innerHTML = '<p style="color:#aaa; font-size:0.85rem; font-style:italic; padding:8px 0;">' + i18n[currentLang].noAnswered + '</p>';
+      return;
+    }
+
+    list.forEach(function(item, index) {
+      const div = document.createElement('div');
+      div.className = 'answered-item' + (item.answered ? ' is-answered' : '');
+      div.innerHTML = `
+        <input
+          type="checkbox"
+          class="answered-checkbox"
+          ${item.answered ? 'checked' : ''}
+          onchange="toggleAnswered(${index})"
+        />
+        <div class="answered-item-body">
+          <div class="answered-item-text">${escapeHtml(item.text)}</div>
+          <div class="answered-date-label">
+            ${i18n[currentLang].answeredOn}
+            <input
+              type="date"
+              class="answered-date-input"
+              value="${escapeHtml(item.date)}"
+              onchange="saveAnsweredDate(${index}, this.value)"
+            />
+          </div>
+        </div>
+        <button class="btn-delete" onclick="deleteAnswered(${index})" title="Remove">✕</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  document.getElementById('answeredInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addAnswered();
+  });
+
+  // ════════════════════════════════════════
+  //  UTILITY: Escape HTML to prevent XSS
+  // ════════════════════════════════════════
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  // ════════════════════════════════════════
+  //  INITIALIZE
+  // ════════════════════════════════════════
+  showVerse();
+  setupAutoSave('praiseText', 'praiseAndThanks');
+  setupAutoSave('heartText', 'onMyHeart');
+  applyLanguage();
+</script>
+
+</body>
+</html>
