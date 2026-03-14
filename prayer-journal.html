@@ -980,11 +980,10 @@
     }
   };
 
-  // Tag name translations for rendering prayer items
-  const tagNames = {
-    en: { self: "Self", family: "Family", friends: "Friends", church: "Church", work: "Work", nation: "Nation", other: "Other" },
-    zh: { self: "自己", family: "家庭", friends: "朋友", church: "教会", work: "工作", nation: "国家", other: "其他" }
-  };
+  // Helper: get translated tag name from i18n
+  function getTagName(tag) {
+    return i18n[currentLang]['tag' + tag.charAt(0).toUpperCase() + tag.slice(1)] || tag;
+  }
 
   let currentLang = localStorage.getItem('prayerJournalLang') || 'en';
 
@@ -1019,15 +1018,18 @@
   // ════════════════════════════════════════
   //  DATE HELPERS
   // ════════════════════════════════════════
-  function getTodayKey() {
-    const d = new Date();
+  function formatDateKey(d) {
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function getTodayKey() {
+    return formatDateKey(new Date());
   }
 
   function getYesterdayKey() {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return formatDateKey(d);
   }
 
   function loadAllEntries() {
@@ -1046,10 +1048,29 @@
     }
   }
 
+  function createEmptyEntry() {
+    return { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
+  }
+
+  function getLocale() {
+    return currentLang === 'zh' ? 'zh-CN' : 'en-US';
+  }
+
+  function loadTodayField(field) {
+    return getTodayEntry()[field];
+  }
+
+  function saveTodayField(field, value) {
+    const entries = loadAllEntries();
+    if (!entries[activeDateKey]) entries[activeDateKey] = createEmptyEntry();
+    entries[activeDateKey][field] = value;
+    saveAllEntries(entries);
+  }
+
   function getTodayEntry() {
     const entries = loadAllEntries();
     if (!entries[activeDateKey]) {
-      entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
+      entries[activeDateKey] = createEmptyEntry();
       saveAllEntries(entries);
     }
     return entries[activeDateKey];
@@ -1537,9 +1558,8 @@
   // ════════════════════════════════════════
   function showDate() {
     const today = new Date();
-    const locale = currentLang === 'zh' ? 'zh-CN' : 'en-US';
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('todayDate').textContent = today.toLocaleDateString(locale, options);
+    document.getElementById('todayDate').textContent = today.toLocaleDateString(getLocale(), options);
   }
 
   // ════════════════════════════════════════
@@ -1577,10 +1597,7 @@
     el.addEventListener('input', function() {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(function() {
-        const entries = loadAllEntries();
-        if (!entries[activeDateKey]) entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
-        entries[activeDateKey][field] = el.value;
-        saveAllEntries(entries);
+        saveTodayField(field, el.value);
       }, 300);
     }, { signal: controller.signal });
   }
@@ -1589,15 +1606,11 @@
   //  SECTION 3: PRAYER REQUESTS
   // ════════════════════════════════════════
   function loadPrayers() {
-    const entry = getTodayEntry();
-    return entry.prayerRequests || [];
+    return loadTodayField('prayerRequests') || [];
   }
 
   function savePrayers(prayers) {
-    const entries = loadAllEntries();
-    if (!entries[activeDateKey]) entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
-    entries[activeDateKey].prayerRequests = prayers;
-    saveAllEntries(entries);
+    saveTodayField('prayerRequests', prayers);
   }
 
   function addPrayer() {
@@ -1627,14 +1640,14 @@
     list.innerHTML = '';
 
     if (prayers.length === 0) {
-      list.innerHTML = '<p style="color:#767676; font-size:0.85rem; font-style:italic; padding:8px 0;">' + i18n[currentLang].noPrayers + '</p>';
+      list.innerHTML = '<p class="history-empty">' + i18n[currentLang].noPrayers + '</p>';
       return;
     }
 
     prayers.forEach(function(prayer, index) {
       const item = document.createElement('div');
       item.className = 'prayer-item';
-      const displayTag = tagNames[currentLang][prayer.tag] || prayer.tag;
+      const displayTag = getTagName(prayer.tag);
       item.innerHTML = `
         <span class="prayer-bullet" aria-hidden="true">•</span>
         <span class="prayer-item-text">${escapeHtml(prayer.text)}</span>
@@ -1653,15 +1666,11 @@
   //  SECTION 4: ANSWERED PRAYERS
   // ════════════════════════════════════════
   function loadAnswered() {
-    const entry = getTodayEntry();
-    return entry.answeredPrayers || [];
+    return loadTodayField('answeredPrayers') || [];
   }
 
   function saveAnswered(list) {
-    const entries = loadAllEntries();
-    if (!entries[activeDateKey]) entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
-    entries[activeDateKey].answeredPrayers = list;
-    saveAllEntries(entries);
+    saveTodayField('answeredPrayers', list);
   }
 
   function addAnswered() {
@@ -1716,7 +1725,7 @@
     container.innerHTML = '';
 
     if (list.length === 0) {
-      container.innerHTML = '<p style="color:#767676; font-size:0.85rem; font-style:italic; padding:8px 0;">' + i18n[currentLang].noAnswered + '</p>';
+      container.innerHTML = '<p class="history-empty">' + i18n[currentLang].noAnswered + '</p>';
       updateAnsweredTracker();
       return;
     }
@@ -1809,10 +1818,8 @@
     const card = document.createElement('div');
     card.className = 'history-entry';
 
-    // Format the date nicely
-    const locale = currentLang === 'zh' ? 'zh-CN' : 'en-US';
     const dateObj = new Date(dateKey + 'T00:00:00');
-    const dateStr = dateObj.toLocaleDateString(locale, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+    const dateStr = dateObj.toLocaleDateString(getLocale(), { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 
     const header = document.createElement('div');
     header.className = 'history-entry-date';
@@ -1827,67 +1834,43 @@
     const body = document.createElement('div');
     body.className = 'history-entry-body';
 
+    // Define category renderers
+    const categories = [
+      {
+        key: 'praiseAndThanks',
+        label: t.historyPraise,
+        render: function(data) { return renderTextBlock(data); }
+      },
+      {
+        key: 'prayerRequests',
+        label: t.historyPrayers,
+        render: function(data) { return renderPrayerList(data); }
+      },
+      {
+        key: 'answeredPrayers',
+        label: t.historyAnswered,
+        render: function(data) { return renderAnsweredList(data); }
+      },
+      {
+        key: 'onMyHeart',
+        label: t.historyHeart,
+        render: function(data) { return renderTextBlock(data); }
+      }
+    ];
+
     let hasContent = false;
+    categories.forEach(function(cat) {
+      if (categoryFilter !== 'all' && categoryFilter !== cat.key) return;
+      const data = entry[cat.key];
+      if (!data || (Array.isArray(data) && data.length === 0)) return;
 
-    // Praise
-    if ((categoryFilter === 'all' || categoryFilter === 'praiseAndThanks') && entry.praiseAndThanks) {
       hasContent = true;
       const label = document.createElement('div');
       label.className = 'history-category-label';
-      label.textContent = t.historyPraise;
+      label.textContent = cat.label;
       body.appendChild(label);
-      const content = document.createElement('div');
-      content.className = 'history-category-content';
-      content.textContent = entry.praiseAndThanks;
-      body.appendChild(content);
-    }
-
-    // Prayer requests
-    if ((categoryFilter === 'all' || categoryFilter === 'prayerRequests') && entry.prayerRequests && entry.prayerRequests.length) {
-      hasContent = true;
-      const label = document.createElement('div');
-      label.className = 'history-category-label';
-      label.textContent = t.historyPrayers;
-      body.appendChild(label);
-      entry.prayerRequests.forEach(function(p) {
-        const item = document.createElement('div');
-        item.className = 'history-prayer-item';
-        const displayTag = tagNames[currentLang][p.tag] || p.tag;
-        item.innerHTML = '<span class="prayer-bullet">•</span><span>' + escapeHtml(p.text) + '</span><span class="tag-pill tag-' + escapeHtml(p.tag) + '">' + escapeHtml(displayTag) + '</span>';
-        body.appendChild(item);
-      });
-    }
-
-    // Answered prayers
-    if ((categoryFilter === 'all' || categoryFilter === 'answeredPrayers') && entry.answeredPrayers && entry.answeredPrayers.length) {
-      hasContent = true;
-      const label = document.createElement('div');
-      label.className = 'history-category-label';
-      label.textContent = t.historyAnswered;
-      body.appendChild(label);
-      entry.answeredPrayers.forEach(function(a) {
-        const item = document.createElement('div');
-        item.className = 'history-prayer-item';
-        const status = a.answered ? '✓' : '○';
-        let extra = '';
-        if (a.answered && a.date) extra = ' <span style="color:var(--gold-text);font-size:0.8rem;">(' + escapeHtml(a.date) + ')</span>';
-        item.innerHTML = '<span style="color:var(--gold-text)">' + status + '</span><span>' + escapeHtml(a.text) + extra + '</span>';
-        body.appendChild(item);
-      });
-    }
-
-    // On My Heart
-    if ((categoryFilter === 'all' || categoryFilter === 'onMyHeart') && entry.onMyHeart) {
-      hasContent = true;
-      const label = document.createElement('div');
-      label.className = 'history-category-label';
-      label.textContent = t.historyHeart;
-      body.appendChild(label);
-      const content = document.createElement('div');
-      content.className = 'history-category-content';
-      content.textContent = entry.onMyHeart;
-      body.appendChild(content);
-    }
+      cat.render(data).forEach(function(el) { body.appendChild(el); });
+    });
 
     if (!hasContent) {
       body.innerHTML = '<p class="history-empty">' + t.historyNoEntries + '</p>';
@@ -1895,6 +1878,38 @@
 
     card.appendChild(body);
     return card;
+  }
+
+  // Helper: render a text block (praise/heart)
+  function renderTextBlock(text) {
+    const content = document.createElement('div');
+    content.className = 'history-category-content';
+    content.textContent = text;
+    return [content];
+  }
+
+  // Helper: render prayer request list for history
+  function renderPrayerList(prayers) {
+    return prayers.map(function(p) {
+      const item = document.createElement('div');
+      item.className = 'history-prayer-item';
+      const displayTag = getTagName(p.tag);
+      item.innerHTML = '<span class="prayer-bullet">•</span><span>' + escapeHtml(p.text) + '</span><span class="tag-pill tag-' + escapeHtml(p.tag) + '">' + escapeHtml(displayTag) + '</span>';
+      return item;
+    });
+  }
+
+  // Helper: render answered prayer list for history
+  function renderAnsweredList(items) {
+    return items.map(function(a) {
+      const item = document.createElement('div');
+      item.className = 'history-prayer-item';
+      const status = a.answered ? '✓' : '○';
+      let extra = '';
+      if (a.answered && a.date) extra = ' <span style="color:var(--gold-text);font-size:0.8rem;">(' + escapeHtml(a.date) + ')</span>';
+      item.innerHTML = '<span style="color:var(--gold-text)">' + status + '</span><span>' + escapeHtml(a.text) + extra + '</span>';
+      return item;
+    });
   }
 
   function toggleHistoryCard(headerEl) {
