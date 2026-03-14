@@ -369,6 +369,132 @@
       position: relative;
     }
 
+    /* ── History section ── */
+    .history-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .history-date-input {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      background: var(--cream);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-yesterday {
+      white-space: nowrap;
+    }
+
+    .history-entry {
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .history-entry-date {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--cream);
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--navy);
+      user-select: none;
+    }
+
+    .history-entry-date:hover {
+      background: var(--light-blue);
+    }
+
+    .history-entry-date .toggle-arrow {
+      transition: transform 0.2s;
+      font-size: 0.8rem;
+    }
+
+    .history-entry-date .toggle-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .history-entry-body {
+      padding: 14px;
+      display: none;
+    }
+
+    .history-entry-body.open {
+      display: block;
+    }
+
+    .history-category-label {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin: 10px 0 6px;
+    }
+
+    .history-category-label:first-child {
+      margin-top: 0;
+    }
+
+    .history-category-content {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      padding: 6px 0;
+    }
+
+    .history-prayer-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .history-empty {
+      color: #aaa;
+      font-size: 0.85rem;
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    /* ── Answered Tracker Badge ── */
+    .history-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .answered-tracker {
+      background: #fffbef;
+      border: 1px solid var(--gold);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .answered-tracker-num {
+      font-size: 0.88rem;
+      font-weight: 800;
+      margin-right: 3px;
+    }
+
     /* ── Responsive: smaller screens ── */
     @media (max-width: 500px) {
       .journal-header h1 { font-size: 3.5rem; }
@@ -376,6 +502,8 @@
       .prayer-input-row { flex-direction: column; }
       .btn-add { width: 100%; }
       .lang-toggle { top: 10px; right: 10px; padding: 5px 10px; font-size: 0.72rem; }
+      .history-controls { flex-direction: column; }
+      .history-controls > * { width: 100%; }
     }
   </style>
 </head>
@@ -471,6 +599,29 @@
     ></textarea>
   </div>
 
+  <!-- ══ SECTION 6: History ══ -->
+  <div class="section-card">
+    <div class="section-label history-label-row">
+      <span data-i18n="historyLabel">✦ History</span>
+      <span class="answered-tracker" id="answeredTracker">
+        <span class="answered-tracker-num" id="answeredTrackerNum">0</span>
+        <span data-i18n="answeredCount">Answered</span>
+      </span>
+    </div>
+    <div class="history-controls">
+      <input type="date" class="history-date-input" id="historyDate" onchange="renderHistory(this.value)" />
+      <select class="tag-select" id="historyFilter" onchange="renderHistory(document.getElementById('historyDate').value)">
+        <option value="all" data-i18n="historyAll">All</option>
+        <option value="praiseAndThanks" data-i18n="historyPraise">Praise & Thanks</option>
+        <option value="prayerRequests" data-i18n="historyPrayers">Prayer Requests</option>
+        <option value="answeredPrayers" data-i18n="historyAnswered">Answered Prayers</option>
+        <option value="onMyHeart" data-i18n="historyHeart">On My Heart</option>
+      </select>
+      <button class="btn-add btn-yesterday" onclick="showYesterday()" data-i18n="historyYesterday">← Yesterday</button>
+    </div>
+    <div id="historyResults"></div>
+  </div>
+
   <!-- ══ FOOTER ══ -->
   <div class="journal-footer">
     <div class="footer-quote" data-i18n="footerQuote">"Go where your best prayers take you."</div>
@@ -509,7 +660,17 @@
       noPrayers: "No prayer requests yet. Add one above.",
       noAnswered: "No answered prayers yet. Add one above.",
       answeredOn: "✦ Answered on:",
-      toggleLabel: "中文"
+      toggleLabel: "中文",
+      historyLabel: "✦ History",
+      historyAll: "All",
+      historyPraise: "Praise & Thanks",
+      historyPrayers: "Prayer Requests",
+      historyAnswered: "Answered Prayers",
+      historyHeart: "On My Heart",
+      historyYesterday: "← Yesterday",
+      historyNoEntries: "No entries found for this date.",
+      historyUseDate: "Select a date to view past entries.",
+      answeredCount: "Answered"
     },
     zh: {
       title: "祷告",
@@ -535,7 +696,17 @@
       noPrayers: "还没有祷告事项，请在上方添加。",
       noAnswered: "还没有蒙应允的祷告，请在上方添加。",
       answeredOn: "✦ 应允日期：",
-      toggleLabel: "EN"
+      toggleLabel: "EN",
+      historyLabel: "✦ 历史记录",
+      historyAll: "全部",
+      historyPraise: "赞美与感恩",
+      historyPrayers: "代祷事项",
+      historyAnswered: "蒙应允的祷告",
+      historyHeart: "心声",
+      historyYesterday: "← 昨天",
+      historyNoEntries: "该日期没有记录。",
+      historyUseDate: "选择日期查看过去的记录。",
+      answeredCount: "已应允"
     }
   };
 
@@ -546,6 +717,81 @@
   };
 
   let currentLang = localStorage.getItem('prayerJournalLang') || 'en';
+  let activeDateKey = getTodayKey();
+
+  // ════════════════════════════════════════
+  //  DATE HELPERS
+  // ════════════════════════════════════════
+  function getTodayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function getYesterdayKey() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function loadAllEntries() {
+    return JSON.parse(localStorage.getItem('prayerJournalEntries') || '{}');
+  }
+
+  function saveAllEntries(entries) {
+    localStorage.setItem('prayerJournalEntries', JSON.stringify(entries));
+  }
+
+  function getTodayEntry() {
+    const entries = loadAllEntries();
+    if (!entries[activeDateKey]) {
+      entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
+      saveAllEntries(entries);
+    }
+    return entries[activeDateKey];
+  }
+
+  function checkDateChange() {
+    const today = getTodayKey();
+    if (activeDateKey !== today) {
+      activeDateKey = today;
+      getTodayEntry();
+      setupAutoSave('praiseText', 'praiseAndThanks');
+      setupAutoSave('heartText', 'onMyHeart');
+      renderPrayers();
+      renderAnswered();
+      showDate();
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  MIGRATION
+  // ════════════════════════════════════════
+  function migrateIfNeeded() {
+    if (localStorage.getItem('prayerJournalMigrated')) return;
+
+    const praise = localStorage.getItem('praiseAndThanks') || '';
+    const heart = localStorage.getItem('onMyHeart') || '';
+    const prayers = JSON.parse(localStorage.getItem('prayerRequests') || '[]');
+    const answered = JSON.parse(localStorage.getItem('answeredPrayers') || '[]');
+
+    if (praise || heart || prayers.length || answered.length) {
+      const entries = loadAllEntries();
+      const today = getTodayKey();
+      entries[today] = {
+        praiseAndThanks: praise,
+        onMyHeart: heart,
+        prayerRequests: prayers,
+        answeredPrayers: answered
+      };
+      saveAllEntries(entries);
+    }
+
+    localStorage.removeItem('praiseAndThanks');
+    localStorage.removeItem('onMyHeart');
+    localStorage.removeItem('prayerRequests');
+    localStorage.removeItem('answeredPrayers');
+    localStorage.setItem('prayerJournalMigrated', 'true');
+  }
 
   function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'zh' : 'en';
@@ -577,6 +823,8 @@
     // Re-render dynamic lists with new language
     renderPrayers();
     renderAnswered();
+    renderHistory(document.getElementById('historyDate') ? document.getElementById('historyDate').value : '');
+    updateAnsweredTracker();
   }
 
   // ════════════════════════════════════════
@@ -1004,11 +1252,18 @@
   // ════════════════════════════════════════
   //  AUTO-SAVE TEXT AREAS
   // ════════════════════════════════════════
-  function setupAutoSave(elementId, storageKey) {
+  function setupAutoSave(elementId, field) {
     const el = document.getElementById(elementId);
-    el.value = localStorage.getItem(storageKey) || '';
-    el.addEventListener('input', function() {
-      localStorage.setItem(storageKey, el.value);
+    const entry = getTodayEntry();
+    el.value = entry[field] || '';
+    // Remove old listeners by cloning
+    const clone = el.cloneNode(true);
+    el.parentNode.replaceChild(clone, el);
+    clone.addEventListener('input', function() {
+      const entries = loadAllEntries();
+      if (!entries[activeDateKey]) entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
+      entries[activeDateKey][field] = clone.value;
+      saveAllEntries(entries);
     });
   }
 
@@ -1016,14 +1271,19 @@
   //  SECTION 3: PRAYER REQUESTS
   // ════════════════════════════════════════
   function loadPrayers() {
-    return JSON.parse(localStorage.getItem('prayerRequests') || '[]');
+    const entry = getTodayEntry();
+    return entry.prayerRequests || [];
   }
 
   function savePrayers(prayers) {
-    localStorage.setItem('prayerRequests', JSON.stringify(prayers));
+    const entries = loadAllEntries();
+    if (!entries[activeDateKey]) entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
+    entries[activeDateKey].prayerRequests = prayers;
+    saveAllEntries(entries);
   }
 
   function addPrayer() {
+    checkDateChange();
     const input = document.getElementById('prayerInput');
     const tag = document.getElementById('prayerTag').value;
     const text = input.value.trim();
@@ -1075,14 +1335,19 @@
   //  SECTION 4: ANSWERED PRAYERS
   // ════════════════════════════════════════
   function loadAnswered() {
-    return JSON.parse(localStorage.getItem('answeredPrayers') || '[]');
+    const entry = getTodayEntry();
+    return entry.answeredPrayers || [];
   }
 
   function saveAnswered(list) {
-    localStorage.setItem('answeredPrayers', JSON.stringify(list));
+    const entries = loadAllEntries();
+    if (!entries[activeDateKey]) entries[activeDateKey] = { praiseAndThanks: '', onMyHeart: '', prayerRequests: [], answeredPrayers: [] };
+    entries[activeDateKey].answeredPrayers = list;
+    saveAllEntries(entries);
   }
 
   function addAnswered() {
+    checkDateChange();
     const input = document.getElementById('answeredInput');
     const text = input.value.trim();
     if (!text) return;
@@ -1114,6 +1379,19 @@
     renderAnswered();
   }
 
+  function updateAnsweredTracker() {
+    const entries = loadAllEntries();
+    let total = 0;
+    for (const key in entries) {
+      if (entries[key].answeredPrayers) {
+        total += entries[key].answeredPrayers.length;
+      }
+    }
+    const tracker = document.getElementById('answeredTracker');
+    const numEl = document.getElementById('answeredTrackerNum');
+    numEl.textContent = total;
+  }
+
   function renderAnswered() {
     const list = loadAnswered();
     const container = document.getElementById('answeredList');
@@ -1121,6 +1399,7 @@
 
     if (list.length === 0) {
       container.innerHTML = '<p style="color:#aaa; font-size:0.85rem; font-style:italic; padding:8px 0;">' + i18n[currentLang].noAnswered + '</p>';
+      updateAnsweredTracker();
       return;
     }
 
@@ -1150,6 +1429,7 @@
       `;
       container.appendChild(div);
     });
+    updateAnsweredTracker();
   }
 
   document.getElementById('answeredInput').addEventListener('keydown', function(e) {
@@ -1166,8 +1446,144 @@
   }
 
   // ════════════════════════════════════════
+  //  HISTORY
+  // ════════════════════════════════════════
+  function showYesterday() {
+    const dateInput = document.getElementById('historyDate');
+    dateInput.value = getYesterdayKey();
+    renderHistory(dateInput.value);
+  }
+
+  function renderHistory(specificDate) {
+    const container = document.getElementById('historyResults');
+    const filter = document.getElementById('historyFilter').value;
+    const t = i18n[currentLang];
+    container.innerHTML = '';
+
+    const entries = loadAllEntries();
+    const today = getTodayKey();
+
+    if (specificDate) {
+      const entry = entries[specificDate];
+      if (!entry) {
+        container.innerHTML = '<p class="history-empty">' + t.historyNoEntries + '</p>';
+        return;
+      }
+      container.appendChild(buildHistoryCard(specificDate, entry, filter));
+    } else {
+      // Show up to 30 most recent past entries (excluding today)
+      const dateKeys = Object.keys(entries).filter(function(k) { return k !== today; }).sort().reverse().slice(0, 30);
+      if (dateKeys.length === 0) {
+        container.innerHTML = '<p class="history-empty">' + t.historyUseDate + '</p>';
+        return;
+      }
+      dateKeys.forEach(function(dk) {
+        container.appendChild(buildHistoryCard(dk, entries[dk], filter));
+      });
+    }
+  }
+
+  function buildHistoryCard(dateKey, entry, categoryFilter) {
+    const t = i18n[currentLang];
+    const card = document.createElement('div');
+    card.className = 'history-entry';
+
+    // Format the date nicely
+    const locale = currentLang === 'zh' ? 'zh-CN' : 'en-US';
+    const dateObj = new Date(dateKey + 'T00:00:00');
+    const dateStr = dateObj.toLocaleDateString(locale, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
+    const header = document.createElement('div');
+    header.className = 'history-entry-date';
+    header.innerHTML = '<span>' + escapeHtml(dateStr) + '</span><span class="toggle-arrow">▸</span>';
+    header.onclick = function() { toggleHistoryCard(header); };
+    card.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'history-entry-body';
+
+    let hasContent = false;
+
+    // Praise
+    if ((categoryFilter === 'all' || categoryFilter === 'praiseAndThanks') && entry.praiseAndThanks) {
+      hasContent = true;
+      const label = document.createElement('div');
+      label.className = 'history-category-label';
+      label.textContent = t.historyPraise;
+      body.appendChild(label);
+      const content = document.createElement('div');
+      content.className = 'history-category-content';
+      content.textContent = entry.praiseAndThanks;
+      body.appendChild(content);
+    }
+
+    // Prayer requests
+    if ((categoryFilter === 'all' || categoryFilter === 'prayerRequests') && entry.prayerRequests && entry.prayerRequests.length) {
+      hasContent = true;
+      const label = document.createElement('div');
+      label.className = 'history-category-label';
+      label.textContent = t.historyPrayers;
+      body.appendChild(label);
+      entry.prayerRequests.forEach(function(p) {
+        const item = document.createElement('div');
+        item.className = 'history-prayer-item';
+        const displayTag = tagNames[currentLang][p.tag] || p.tag;
+        item.innerHTML = '<span class="prayer-bullet">•</span><span>' + escapeHtml(p.text) + '</span><span class="tag-pill tag-' + escapeHtml(p.tag) + '">' + escapeHtml(displayTag) + '</span>';
+        body.appendChild(item);
+      });
+    }
+
+    // Answered prayers
+    if ((categoryFilter === 'all' || categoryFilter === 'answeredPrayers') && entry.answeredPrayers && entry.answeredPrayers.length) {
+      hasContent = true;
+      const label = document.createElement('div');
+      label.className = 'history-category-label';
+      label.textContent = t.historyAnswered;
+      body.appendChild(label);
+      entry.answeredPrayers.forEach(function(a) {
+        const item = document.createElement('div');
+        item.className = 'history-prayer-item';
+        const status = a.answered ? '✓' : '○';
+        let extra = '';
+        if (a.answered && a.date) extra = ' <span style="color:var(--gold);font-size:0.8rem;">(' + escapeHtml(a.date) + ')</span>';
+        item.innerHTML = '<span style="color:var(--gold)">' + status + '</span><span>' + escapeHtml(a.text) + extra + '</span>';
+        body.appendChild(item);
+      });
+    }
+
+    // On My Heart
+    if ((categoryFilter === 'all' || categoryFilter === 'onMyHeart') && entry.onMyHeart) {
+      hasContent = true;
+      const label = document.createElement('div');
+      label.className = 'history-category-label';
+      label.textContent = t.historyHeart;
+      body.appendChild(label);
+      const content = document.createElement('div');
+      content.className = 'history-category-content';
+      content.textContent = entry.onMyHeart;
+      body.appendChild(content);
+    }
+
+    if (!hasContent) {
+      body.innerHTML = '<p class="history-empty">' + t.historyNoEntries + '</p>';
+    }
+
+    card.appendChild(body);
+    return card;
+  }
+
+  function toggleHistoryCard(headerEl) {
+    const arrow = headerEl.querySelector('.toggle-arrow');
+    const body = headerEl.nextElementSibling;
+    arrow.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
+  // ════════════════════════════════════════
   //  INITIALIZE
   // ════════════════════════════════════════
+  migrateIfNeeded();
+  activeDateKey = getTodayKey();
   showVerse();
   setupAutoSave('praiseText', 'praiseAndThanks');
   setupAutoSave('heartText', 'onMyHeart');
